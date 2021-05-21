@@ -46,9 +46,9 @@ static bool enqueue ( cli_queue * p_queue, int client_data );
  * @param p_queue - a pointer to the existing queue container
  * @param fd_to_get - a pointer to the queue node containing
  *                    the clients file descriptor data
- * @return - the client's file descriptor
+ * @return - the client's file descriptor, -1 upon error
  */
-static int dequeue ( cli_queue * p_queue, queue_node * fd_to_get );
+static int dequeue ( cli_queue * p_queue );
 
 /**
  * @brief - a boolean check to determine if the client queue is full
@@ -74,6 +74,7 @@ static bool b_isempty ( cli_queue * p_queue );
  * @brief - get the current length of the queue
  * @param p_queue - a pointer to the existing queue container
  * @return - the current number of clients contained in the queue
+ *           or return 1 on failure
  */
 static size_t queue_len ( cli_queue * p_queue );
 
