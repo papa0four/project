@@ -110,6 +110,35 @@ static size_t queue_len(cli_queue * p_queue)
     return p_queue->cur_size;
 }
 
+static bool destroy(cli_queue * p_queue)
+{
+    if (NULL == p_queue)
+    {
+        perror("queue passed is NULL");
+        return false;
+    }
+    if (NULL == p_queue->q_head)
+    {
+        perror("no clients, destroy container");
+        clear_memory(p_queue);
+        return true;
+    }
+    queue_node * p_current  = p_queue->q_head;
+    queue_node * p_temp     = NULL;
+
+    while (p_current)
+    {
+        p_temp = p_current;
+        p_current = p_current->next;
+        clear_memory(p_temp);
+        p_queue->cur_size--;
+    }
+    p_queue->cur_size   = 0;
+    p_queue->q_size     = 0;
+    clear_memory(p_queue);
+    return true;
+}
+
 static void clear_memory(void * mem_obj)
 {
     if (NULL == mem_obj)

@@ -105,15 +105,15 @@ static void clear_sizes(cli_queue * p_queue)
 
 static void print_queue(cli_queue * p_queue)
 {
-    if ((NULL == p_queue) || (NULL == p_queue->q_head))
+    if (NULL == p_queue)
     {
-        fprintf(stderr, "print_queue() - queue or queue head is NULL\n");
+        fprintf(stderr, "print_queue() - queue container is NULL\n");
         return;
     }
     int iter = 1;
     if (b_isempty(p_queue))
     {
-        printf("Current Queue: (NULL)\n");
+        printf("Current Queue: (EMPTY)\n");
         return;
     }
     queue_node * p_current = p_queue->q_head;
@@ -124,11 +124,45 @@ static void print_queue(cli_queue * p_queue)
         {
             break;
         }
-        printf("|| Client %d. | %d -> ", iter, p_current->cli_fd);
+        printf("|| Client %d. | %d (6ft. for COVID) ", iter, p_current->cli_fd);
         p_current = p_current->next;
         iter++;
     }
-    printf("|| Client %d. | %d --| (NULL)\n", iter, p_current->cli_fd);
+    printf("|| Client %d. | %d --| (END)\n", iter, p_current->cli_fd);
+}
+
+static cli_queue * populate_queue(cli_queue * p_queue)
+{
+    size_t      q_size = gen_random_container_size();
+    int         cli_fd;
+    bool        b_enqueued;
+
+    p_queue = queue_init(q_size);
+    if (NULL == p_queue)
+    {
+        fprintf(stderr, "populate_queue() - could not initialize queue - exiting ... ");
+        return NULL;
+    }
+    for (size_t i = 0; i < q_size; i++)
+    {
+        cli_fd = gen_random_number();
+        b_enqueued = enqueue(p_queue, cli_fd);
+        if (false == b_enqueued)
+        {
+            fprintf(stderr, "populate_queue() - could not enqueue %d\n", cli_fd);
+            break;
+        }
+        usleep(SLEEPY_TIME);
+    }
+    if ((false == b_enqueued) || (q_size != p_queue->cur_size))
+    {
+        goto CLEANUP;
+    }
+    return p_queue;
+
+CLEANUP:
+    destroy(p_queue);
+    return NULL;
 }
 
 static void test_queue_init()
@@ -198,7 +232,7 @@ static void test_enqueue_on_empty()
 
     printf("\t testing queue head node pointer is not null ... ");
     is_not_null_check(p_queue->q_head);
-    printf("\t Current Queue: || Client 1. | %d --| (NULL)\n", p_queue->q_head->cli_fd);
+    printf("\t Current Queue: || Client 1. | %d --| (END)\n", p_queue->q_head->cli_fd);
 
     /* cleanup */
     clear_sizes(p_queue);
@@ -298,7 +332,6 @@ static void test_enqueue_variable_size()
         }
         usleep(SLEEPY_TIME);
     }
-
     if ((false == b_enqueued) || (why_not != p_queue->cur_size))
     {
         failed += 1;
@@ -400,37 +433,17 @@ static void test_dequeue_on_null()
 
 static void test_dequeue_current_head()
 {
-    int     cli_fd;
-    bool    b_enqueued;
-    int     q_size = gen_random_container_size();
-
-    p_queue = queue_init(q_size);
+    int cli_fd;
+    printf("test dequeue current head ... \n");
+    p_queue = populate_queue(p_queue);
     if (NULL == p_queue)
     {
-        fprintf(stderr, "test_dequeue_current_head() - error occurred initializing queue - exiting ...\n");
+        fprintf(stderr, "test_dequeue_current_head() - could not initialize queue - exiting ... \n");
         return;
     }
-    for (size_t i = 0; i < q_size; i++)
-    {
-        cli_fd = gen_random_number();
-        b_enqueued = enqueue(p_queue, cli_fd);
-        if (false == b_enqueued)
-        {
-            fprintf(stderr, "could not enqueue %d\n", cli_fd);
-            break;
-        }
-        usleep(SLEEPY_TIME);
-    }
-    if ((false == b_enqueued) || (q_size != p_queue->cur_size))
-    {
-        fprintf(stderr, "test_dequeue_current_head() - queue population failed - exiting ... \n");
-        goto CLEANUP;
-    }
-    else
-    {
-        printf("\t\t Before head removal ... \n");
-        print_queue(p_queue);
-    }
+
+    printf("\t Before head removal ... \n");
+    print_queue(p_queue);
 
     printf("\t testing removal of head of queue ... ");
     ran += 1;
@@ -477,6 +490,97 @@ CLEANUP:
     clear_memory(p_queue);
 }
 
+static void test_dequeue_until_empty()
+{
+    int cli_fd;    
+    printf("test dequeue clients until empty ... \n");
+    p_queue = populate_queue(p_queue);
+    if (NULL == p_queue)
+    {
+        fprintf(stderr, "test_dequeue_until_empty() - could not initialize queue - exiting ... \n");
+        return;
+    }
+
+    printf("\t Before clearing of the queue ... \n");
+    print_queue(p_queue);
+    printf("\t testing dequeue until empty ... \n");
+    ran += 1;
+    printf("\t\t dequeuing ... ");
+    for (size_t i = 0; i < p_queue->q_size; i++)
+    {
+        cli_fd = dequeue(p_queue);
+        if (-1 == cli_fd)
+        {
+            failed += 1;
+            printf("FAILED\n");
+            break;
+        }
+    }
+    
+    if (b_isempty(p_queue))
+    {
+        passed += 1;
+        printf("passed\n");
+        print_queue(p_queue);
+    }
+
+    printf("\t testing dequeue from empty queue ... ");
+    ran += 1;
+    cli_fd = dequeue(p_queue);
+    if (-1 != cli_fd)
+    {
+        failed += 1;
+        printf("FAILED\n");
+    }
+    else
+    {
+        passed += 1;
+        printf("passed\n");
+    }
+    
+
+    /* cleanup */
+    queue_node * p_current = p_queue->q_head;
+    queue_node * p_temp = NULL;
+
+CLEANUP:
+    
+    while (p_current)
+    {
+        p_temp = p_current;
+        p_current = p_current->next;
+        clear_memory(p_temp);
+        p_queue->cur_size--;
+    }
+    clear_sizes(p_queue);
+    clear_memory(p_queue);
+}
+
+static void test_destroy()
+{
+    bool b_destroyed;
+    printf("test destroy queue ... \n");
+    p_queue = populate_queue(p_queue);
+    if (NULL == p_queue)
+    {
+        fprintf(stderr, "test_destroy() - could not initialize queue - exiting ...\n");
+        return;
+    }
+    printf("\t testing queue is empty ... ");
+    ran += 1;
+    b_destroyed = destroy(p_queue);
+    if (false == b_destroyed)
+    {
+        failed += 1;
+        printf("FAILED\n");
+    }
+    else
+    {
+        passed += 1;
+        printf("passed\n");
+    }
+}
+
 static void print_summary()
 {
     size_t total = ran;
@@ -493,6 +597,8 @@ int main (void)
     test_dequeue_on_empty();
     test_dequeue_on_null();
     test_dequeue_current_head();
+    test_dequeue_until_empty();
+    test_destroy();
     print_summary();
     return EXIT_SUCCESS;
 }

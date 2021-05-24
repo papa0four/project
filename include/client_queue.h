@@ -82,9 +82,11 @@ static size_t queue_len ( cli_queue * p_queue );
  * @brief - clear out any existing data nodes, free/nullify existing memory
  *          and destroy/free/nullify queue container
  * @param p_queue - a pointer to the existing queue container
- * @return - N/A
+ * @return - return true upon successful memory deallocation of struct members
+ *           containing client queue data and of the overarching queue container,
+ *           or return false upon errors
  */
-static void destroy ( cli_queue * p_queue );
+static bool destroy ( cli_queue * p_queue );
 
 /**
  * @brief - a helper function for cleaning up allocated memory
