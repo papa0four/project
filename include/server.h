@@ -34,7 +34,7 @@
  *           if the file pointer passed is not valid, return *FILE_NOT_FOUND*
  *           if an error occurs, return -1
  */
-static long         get_file_len ( FILE * p_file );
+static long get_file_len ( FILE * p_file );
 
 /**
  * @brief - a boolean check to determine whether or not a file exists
@@ -42,7 +42,7 @@ static long         get_file_len ( FILE * p_file );
  * @return - true if file passed is valid/exists
  *           false upon errors or if file does not exists
  */
-static bool         b_isfile ( FILE * p_file );
+static bool b_isfile ( FILE * p_file );
 
 /**
  * @brief - handles the clients ability to upload files to the server;
@@ -53,7 +53,7 @@ static bool         b_isfile ( FILE * p_file );
  *           signifying that the file was successfully uploaded
  *           if an error occurs, the function call will return ERROR (500)
  */
-static uint16_t     upload_file ( FILE * p_file );
+static uint16_t upload_file ( FILE * p_file );
 
 /**
  * @brief - handles the clients ability to download a valid file from the server;
@@ -66,7 +66,7 @@ static uint16_t     upload_file ( FILE * p_file );
  *           if the client tries to download a file not currently on the server,
  *           the function call will return FILE_NOT_FOUND (404)
  */
-static uint16_t     download_file ( FILE * p_file );
+static uint16_t download_file ( FILE * p_file );
 
 /**
  * @brief - allows the client to send a command to the server and display
@@ -76,14 +76,14 @@ static uint16_t     download_file ( FILE * p_file );
  * @param - N/A
  * @return - prints a list of files with permissions to the client
  */
-static void         display_files();
+static void display_files();
 
 /**
  * @brief - helper function when calling free and setting objects to NULL
  * @param mem_obj - a pointer to the memory object to be free'd
  * @return - N/A
  */
-static void         clear_memory ( void * mem_obj );
+static void clear_memory ( void * mem_obj );
 
 /**
  * @brief - handles a ctrl+c call made on the server - if there are clients
@@ -94,7 +94,23 @@ static void         clear_memory ( void * mem_obj );
  * @param sig_no - the integer value of the SIGINT signal
  * @return - N/A
  */
-static void         handle_SIGINT ( int sig_no );
+static void handle_SIGINT ( int sig_no );
+
+/**
+ * @brief - boolean check to determine that a passed ipv4 address is
+ *          valid and assignable
+ * @param p_addr - a pointer to the ipv4 address in string format i.e. "127.0.0.1"
+ * @return - true if ipv4 address is valid, false if it is not
+ */
+static bool b_valid_ip ( char * p_addr );
+
+/**
+ * @brief - boolean check to determine that a passed ipv4 6 is
+ *          valid and assignable
+ * @param p_addr - a pointer to the ipv6 address in string format i.e. "::01"
+ * @return - true if ipv6 address is valid, false if it is not
+ */
+static bool b_valid_ip6 ( char * p_addr );
 
 #endif
 
