@@ -54,12 +54,14 @@ static void handle_incoming_clients(int sockfd)
         else
         {
             printf("Received from client: %s\n", buffer);
+            memset(buffer, 0, MAX_STR_LEN);
         }
         ig_SIGINT.sa_handler = handle_SIGINT;
         sigfillset(&ig_SIGINT.sa_mask);
         ig_SIGINT.sa_flags = 0;
         sigaction(SIGINT, &ig_SIGINT, NULL);
     }
+    clear_memory(buffer);
 }
 
 static bool b_valid_ip(char * p_addr)
