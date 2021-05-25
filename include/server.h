@@ -24,6 +24,11 @@
 #define FILE_NOT_FOUND  404
 #define ERROR           500
 
+/* server preprocessor defines */
+#define SERV_ADDR       "127.0.0.1"
+#define SERV_PORT       31337
+#define MAX_STR_LEN     1024
+
 /**
  * @brief - if file pointer passed is a valid file,
  *          determine the length of the file. Can be used 
@@ -43,6 +48,15 @@ static long get_file_len ( FILE * p_file );
  *           false upon errors or if file does not exists
  */
 static bool b_isfile ( FILE * p_file );
+
+/**
+ * @brief - handles the incoming connections from each client
+ *          will eventually call the server functionality the performs 
+ *          the given operation requested by the client(s)
+ * @param sockfd - the client's incoming socket file descriptor
+ * @return - N/A
+ */
+static void handle_incoming_clients ( int sockfd );
 
 /**
  * @brief - handles the clients ability to upload files to the server;
